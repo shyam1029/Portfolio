@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="progress-bar-container">
+    <label class="progress-bar">Started Loading...</label>
+    <progress id="progress-bar" value="0" max="1"></progress>
+  </div>
+  <div class="intro-gesture">
+    <label class="gesture-text">Scroll to Explore</label>
+    <div class="scroll-arrow"></div>
+  </div>
+  <div class="scroll-container">
+    <canvas class="webgl"></canvas>
+    <div id="project-ui">
+      <h1>Projects</h1>
+      <div class="project-container">
+        <div class="project-card">
+          <a href="https://shyam1029.github.io/Three.js---6/" target="_blank"><img src="./assets/img/ar.jpeg" alt="AetherRush"></a>
+          <h2>AetherRush</h2>
+          <p>A thrilling sci-fi adventure game set in a futuristic universe. Players navigate through asteroid fields and battle enemy ships. Hosted on GitHub with live demo available.</p>
+        </div>
+        <div class="project-card">
+          <a href="https://shyam1029.github.io/Three.js---4/" target="_blank"><img src="./assets/img/elp.png" alt="Endless Space Runner"></a>
+          <h2>Endless Space Runner</h2>
+          <p>An infinite runner game set in space, where players dodge obstacles and collect power-ups. Built with JavaScript and hosted on GitHub.</p>
+        </div>
+        <div class="project-card">
+          <a href="https://shyam1029.github.io/Three.js---3.2/" target="_blank"><img src="./assets/img/car.png" alt="Luxe Cars"></a>
+          <h2>Luxe Cars</h2>
+          <p>A showcase of luxury cars with interactive 3D models and detailed specifications. Explore high-end vehicles in this GitHub-hosted project.</p>
+        </div>
+      </div>
+    </div>
+    <div id="contact-ui">
+      <!-- <h1>Contact</h1> -->
+      <div class="contact-container">
+        <div class="contact-card">
+          <a href="www.linkedin.com/in/syam-satish-polipalli-507864250" target="_blank">
+            <img src="./assets/img/linkedin.png" alt="LinkedIn">
+            <h2>LinkedIn</h2>
+          </a>
+          <p>Connect with me on LinkedIn for professional updates and networking.</p>
+        </div>
+        <div class="contact-card">
+          <a href="https://github.com/shyam1029" target="_blank">
+            <img src="./assets/img/github.png" alt="GitHub">
+            <h2>GitHub</h2>
+          </a>
+          <p>Explore my open-source projects and code repositories on GitHub.</p>
+        </div>
+        <div class="contact-card">
+          <a href="mailto:syamsatishpolipalli@gmail.com">
+            <img src="./assets/img/gmail.png" alt="Email">
+            <h2>Email</h2>
+          </a>
+          <p>Send me an email for inquiries, collaborations, or just to say hello!</p>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@v0.172.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.172.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
