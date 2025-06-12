@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { SimplexNoise } from 'https://cdn.jsdelivr.net/npm/simplex-noise@3.0.1/+esm';
 
@@ -66,17 +65,17 @@ scene.background = new THREE.Color(0x87CEEB);
 // OBJECTS
 //
 let curve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(85, -16, 70), 
-  new THREE.Vector3(58, -20, 46), 
-  new THREE.Vector3(70, 50, 70),
-  new THREE.Vector3(70, 120, 71), 
+  new THREE.Vector3(85, -16, 70), // Start
+  new THREE.Vector3(58, -20, 46), // Near reef 1
+  new THREE.Vector3(70, 50, 70), // Near fish
+  new THREE.Vector3(70, 120, 71),  // End at chest
 ]);
 
 //
 // CAMERA
 //
 const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
-camera.position.set(85, -16, 70); 
+camera.position.set(85, -16, 70); // Start at the beginning of the path
 scene.add(camera);
 
 //
@@ -85,9 +84,31 @@ scene.add(camera);
 const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Shadows still enabled (good if you use some lights)
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.render(scene, camera);
+
+
+//
+// BLOOM PASS
+//
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  1.5, // strength
+  0.4, // radius
+  0.85 // threshold
+);
+composer.addPass(bloomPass);
+
+
 
 //
 // SCROLL
@@ -100,10 +121,12 @@ lenis.on('scroll', ({ scroll, limit, velocity, progress }) => {
   camera.position.copy(point);
   camera.lookAt(point.clone().add(tangent));
 
+  // Hide intro gesture on scroll start
   if (t > 0 && introGesture.classList.contains("visible")) {
     gsap.to(introGesture, { opacity: 0, duration: 0.8, onComplete: () => introGesture.style.display = 'none' });
   }
 
+  // Handle intro_card position based on scroll
   const isScrollingForward = t > lastScrollT;
   if (t >= 0.99) {
     gsap.to(intro_card.position, {x: 70, y: 150, z: 70, duration: 0.1, ease: 'power2.out'});
@@ -153,12 +176,6 @@ scene.add(sunLight);
 //
 // CARD
 //
-const cardPointLight = new THREE.PointLight(0xffffff, 1, 20);
-cardPointLight.position.set(70, 160, 80);
-
-const cardSpotLight = new THREE.SpotLight(0xffffff, 2, 50, Math.PI / 6, 0.5);
-cardSpotLight.position.set(70, 160, 70);
-cardSpotLight.castShadow = true;
 
 const generateCubeMap = () => {
   const size = 64;
@@ -414,53 +431,33 @@ const cardCrystalMaterial = new THREE.ShaderMaterial({
     varying vec3 vNormal;
     varying vec3 vViewPosition;
 
-    float random(vec2 st) {
-      return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-    }
-
-    float noise(vec2 st) {
-      vec2 i = floor(st);
-      vec2 f = fract(st);
-      float a = random(i);
-      float b = random(i + vec2(1.0, 0.0));
-      float c = random(i + vec2(0.0, 1.0));
-      float d = random(i + vec2(1.0, 1.0));
-      vec2 u = f * f * (3.0 - 2.0 * f);
-      return mix(a, b, u.x) +
-             (c - a) * u.y * (1.0 - u.x) +
-             (d - b) * u.x * u.y;
-    }
-
-    vec3 rainbowColor(float t) {
-      float r = sin(t * 6.28318 + 0.0) * 0.8 + 0.2;
-      float g = sin(t * 6.28318 + 2.09439) * 0.8 + 0.2;
-      float b = sin(t * 6.28318 + 4.18879) * 0.8 + 0.2;
-      return vec3(r, g, b) * 2.0;
+    vec3 hueToRGB(float hue) {
+      float r = abs(hue * 6.0 - 3.0) - 1.0;
+      float g = 2.0 - abs(hue * 6.0 - 2.0);
+      float b = 2.0 - abs(hue * 6.0 - 4.0);
+      return clamp(vec3(r, g, b), 0.0, 1.0);
     }
 
     void main() {
       vec3 viewDir = normalize(vViewPosition);
-      float fresnel = pow(1.0 - dot(vNormal, viewDir), 2.0);
+      float fresnel = pow(1.0 - dot(vNormal, viewDir), 3.0);
       fresnel = clamp(fresnel, 0.0, 1.0);
 
-      vec3 baseColor = vec3(0.3, 0.3, 0.3);
-
-      float rainbowOffset = vUv.x + vUv.y;
-      vec3 rainbow = rainbowColor(rainbowOffset);
-
-      float noiseValue = noise(vUv * 10.0);
-      rainbow = mix(rainbow, rainbow * noiseValue, 0.3);
-
-      vec3 color = mix(baseColor, rainbow, 0.5);
+      float iridescenceSpeed = 0.5;
+      float hue = fract((vUv.x + vUv.y) * 0.5 + time * iridescenceSpeed);
+      vec3 iridescentColor = hueToRGB(hue);
+      vec3 baseColor = vec3(0.9, 0.9, 1.0);
+      vec3 color = mix(baseColor, iridescentColor, 0.7);
 
       vec3 reflectDir = reflect(-viewDir, vNormal);
       vec3 envColor = textureCube(envMap, reflectDir).rgb;
-      color = mix(color, envColor, 0.75);
+      color = mix(color, envColor, 0.4);
 
-      color += vec3(0.8, 0.8, 1.0) * fresnel * 1.0;
+      color += vec3(0.5, 0.6, 1.0) * fresnel * 0.5;
 
+      float glowIntensity = 0.2;
       float glowPulse = sin(time * 0.5) * 0.5 + 0.5;
-      color += vec3(0.2, 0.3, 0.5) * 0.5 * glowPulse;
+      color += iridescentColor * glowIntensity * glowPulse;
 
       vec4 details = texture2D(detailsTexture, vUv);
       if (details.a > 0.0) {
@@ -486,9 +483,6 @@ cardBodyMesh.receiveShadow = true;
 
 const intro_card = new THREE.Group();
 intro_card.add(cardBodyMesh);
-intro_card.add(cardPointLight);
-intro_card.add(cardSpotLight);
-cardSpotLight.target = cardBodyMesh;
 intro_card.position.set(70, 110, 71);
 intro_card.rotation.y = Math.PI / 4;
 intro_card.userData = { baseY: 50 };
@@ -757,7 +751,7 @@ const sunGeometry = new THREE.SphereGeometry(7.5, 32, 32);
 const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF99 });
 const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
 sunMesh.position.copy(sunPosition);
-scene.add(sunMesh);
+// scene.add(sunMesh);
 
 //
 // CORAL MODELS
@@ -779,6 +773,43 @@ const defaultScales = [
 ];
 
 const loader = new GLTFLoader(manager);
+
+let crown;
+
+loader.load(
+  './assets/sculptures/crown.glb',
+  (gltf) => {
+    crown = gltf.scene;
+
+    crown.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (!(child.material instanceof THREE.MeshStandardMaterial)) {
+          child.material = new THREE.MeshStandardMaterial({
+            color: child.material.color || 0xffffff,
+            metalness: 0.8,
+            roughness: 0.2
+          });
+        }
+      }
+    });
+
+    crown.position.copy(sunPosition);
+    crown.rotation.y = -Math.PI / 2;
+    crown.scale.set(2, 2, 2);
+    crown.userData = { baseY: -25 };
+    crown.castShadow = true;
+    crown.receiveShadow = true;
+    scene.add(crown);
+  },
+  undefined,
+  (error) => {
+    console.error(`Error loading crown:`, error);
+  }
+);
+
+
 let coralModels = [];
 let coralInstanceList = [];
 
@@ -1027,10 +1058,14 @@ coralPositions.forEach(item => {
 window.addEventListener('resize', () => {
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
-  renderer.setSize(sizes.width, sizes.height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
   camera.aspect = sizes.width / sizes.height;
   camera.updateProjectionMatrix();
+
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  composer.setSize(sizes.width, sizes.height); // ← Add this
 });
 
 //
@@ -1039,8 +1074,10 @@ window.addEventListener('resize', () => {
 const animation = () => {
   const delta = 0.016;
   time = clock.getElapsedTime();
+
   waterMaterial.uniforms.time.value = time * waterParams.speed;
   floorMaterial.uniforms.time.value = time;
+  cardCrystalMaterial.uniforms.time.value = time;
 
   fishInstances.forEach((fish, index) => {
     fish.position.add(fish.userData.direction.clone().multiplyScalar(fish.userData.speed * 0.1));
@@ -1061,8 +1098,10 @@ const animation = () => {
     coral.children[0].position.y = baseY + Math.sin(time + coral.position.x) * 0.2;
   });
 
+  // controls.update();
   lenis.raf(time * 1000);
-  renderer.render(scene, camera);
+
+  composer.render(); // ← This replaces renderer.render
   requestAnimationFrame(animation);
 };
 
