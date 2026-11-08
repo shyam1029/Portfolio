@@ -1,13 +1,11 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
-import { BoxGeometry, Color, type Group, InstancedMesh, Object3D, Vector3 } from 'three';
+import { AdditiveBlending, BoxGeometry, Color, type Group, InstancedMesh, type Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three';
 import { paint } from '../materials';
 import { IslandBase, defaultIslandMaterials, seeded } from './IslandBase';
-import { chapters, games } from '../../../content/story';
-import { useVoyage } from '../../world/store';
+import { games } from '../../../content/story';
+import { bottleLabels } from '../../world/bottleLabels';
 
-const arcade = chapters.find((c) => c.id === 'arcade')!;
 import { atmosphere } from '../../world/atmosphere';
 import { waveHeight } from '../../world/route';
 import { MeshStandardMaterial } from 'three';
@@ -76,27 +74,48 @@ function Coins() {
   );
 }
 
+const labelAnchor = new Vector3();
+
 /** A message bottle bobbing in the water; clicking it opens one of the games. */
 function Bottle({ game, world, index }: { game: (typeof games)[number]; world: Vector3; index: number }) {
   const ref = useRef<Group>(null);
+  const ring = useRef<Mesh>(null);
   const [hover, setHover] = useState(false);
-  // Labels only while sailing past Arcade Isle, so they don't float over other chapters.
-  const nearby = useVoyage((s) => s.progress > arcade.range[0] + 0.02 && s.progress < arcade.range[1]);
+  const ringMat = useMemo(
+    () => new MeshBasicMaterial({ color: '#9ffcf0', transparent: true, opacity: 0.5, blending: AdditiveBlending, depthWrite: false }),
+    [],
+  );
   const phase = useMemo(() => world.x * 0.7, [world]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera, size }) => {
     const g = ref.current;
     if (!g) return;
     const t = clock.elapsedTime;
+    // Publish where this bottle's name tag should sit on screen (the DOM labels read it).
+    g.getWorldPosition(labelAnchor);
+    labelAnchor.y += 3.2;
+    labelAnchor.project(camera);
+    const label = bottleLabels[index];
+    label.x = (labelAnchor.x * 0.5 + 0.5) * size.width;
+    label.y = (-labelAnchor.y * 0.5 + 0.5) * size.height;
+    label.onScreen = labelAnchor.z < 1 && Math.abs(labelAnchor.x) < 1.05 && Math.abs(labelAnchor.y) < 1.05;
+    label.hover = hover;
     // Bottles live in island-local space; sample waves at their world position.
-    g.position.y = waveHeight(world.x, world.z, t, atmosphere.storm) * 0.9 + 0.3;
+    g.position.y = waveHeight(world.x, world.z, t, atmosphere.storm) + 0.7;
     g.rotation.z = 0.5 + Math.sin(t * 1.3 + phase) * 0.25;
     g.rotation.x = Math.cos(t * 1.1 + phase) * 0.2;
-    const s = hover ? 1.25 : 1;
+    ringMat.opacity = (hover ? 0.8 : 0.35) + Math.sin(t * 2.5 + phase) * 0.15;
+    if (ring.current) ring.current.position.y = g.position.y - 0.85;
+    const s = hover ? 1.75 : 1.45;
     g.scale.lerp(new Vector3(s, s, s), 0.2);
   });
 
   return (
+    <>
+    {/* soft glowing ring lying flat on the water, so each bottle is easy to spot */}
+    <mesh ref={ring} rotation-x={-Math.PI / 2} material={ringMat}>
+      <ringGeometry args={[1.8, 2.9, 40]} />
+    </mesh>
     <group
       ref={ref}
       onClick={(e) => {
@@ -129,13 +148,8 @@ function Bottle({ game, world, index }: { game: (typeof games)[number]; world: V
       <mesh visible={false}>
         <sphereGeometry args={[1.6, 8, 8]} />
       </mesh>
-      <Html center position={[0, 2.8 + index * 1.4, 0]} style={{ pointerEvents: 'none' }} zIndexRange={[20, 0]}>
-        <div className={`bottle-label${hover ? ' is-hover' : ''}${nearby || hover ? ' is-near' : ''}`}>
-          <strong>{game.title}</strong>
-          {hover && <span>{game.blurb} Click to play.</span>}
-        </div>
-      </Html>
     </group>
+    </>
   );
 }
 
@@ -144,7 +158,14 @@ export function ArcadeIsle({ radius, worldPosition, towardRoute }: { radius: num
   const bottles = useMemo(() => {
     const side = new Vector3(-towardRoute.z, 0, towardRoute.x);
     return games.map((game, i) => {
-      const local = towardRoute.clone().multiplyScalar(radius + 9).addScaledVector(side, (i - 1) * 14);
+      // On an arc just off the shore facing the sea lane, so the three never line up behind each
+      // other from the camera's point of view (a straight row along the route did).
+      const angle = (i - 1) * 0.5;
+      const local = towardRoute
+        .clone()
+        .multiplyScalar(Math.cos(angle))
+        .addScaledVector(side, Math.sin(angle))
+        .multiplyScalar(radius + 6);
       return { game, local, world: local.clone().add(worldPosition) };
     });
   }, [radius, worldPosition, towardRoute]);

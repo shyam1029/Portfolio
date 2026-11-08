@@ -72,6 +72,10 @@ a { color: inherit; }
 .scroll-hint.is-visible { opacity: 1; animation: bob 2s ease-in-out infinite; }
 @keyframes bob { 50% { translate: 0 -6px; } }
 
+.bottle-labels { position: absolute; inset: 0; }
+.bottle-labels .bottle-label { position: absolute; left: 0; top: 0; }
+.bottle-label-hint { display: none; font-size: 0.9rem; }
+.bottle-label.is-hover .bottle-label-hint { display: block; }
 .bottle-label {
   display: grid; gap: 2px; white-space: nowrap; text-align: center; padding: 6px 10px; font-family: var(--hand);
   background: var(--parchment); color: #3b2a17; border: 2px solid var(--ink); border-radius: 8px; box-shadow: 3px 3px 0 var(--ink);

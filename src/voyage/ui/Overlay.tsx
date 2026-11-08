@@ -4,6 +4,7 @@ import { useVoyage } from '../world/store';
 import { chapterAt } from '../world/atmosphere';
 import { RouteChart } from './RouteChart';
 import { WantedPoster } from './WantedPoster';
+import { BottleLabels } from './BottleLabels';
 
 function CaptainsLog() {
   // Re-render only when the visible line changes.
@@ -75,6 +76,7 @@ export function Overlay() {
       <a className="skip-link" href={`${withBase('about')}`}>
         Skip the voyage and read about me
       </a>
+      <BottleLabels />
       <ChapterTitle />
       <CaptainsLog />
       <Dream />

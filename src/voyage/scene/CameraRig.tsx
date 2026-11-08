@@ -33,7 +33,8 @@ export function CameraRig() {
       const local = (t - chapter.range[0]) / (chapter.range[1] - chapter.range[0]);
       const l = MathUtils.clamp(local, 0, 1);
       // The voyage opens in harbour (full weight at the start); other islands peak mid-chapter.
-      const w = lookAtIsland * (chapter.id === 'spark' ? 1 - MathUtils.smoothstep(l, 0.3, 1) : Math.sin(Math.PI * l));
+      // Plateau rather than a peak, so each island stays framed for most of its chapter.
+      const w = lookAtIsland * (chapter.id === 'spark' ? 1 - MathUtils.smoothstep(l, 0.3, 1) : Math.min(1, Math.sin(Math.PI * l) * 1.6));
       lookTarget.lerp(look.copy(island.position).setY(6), w);
     }
 

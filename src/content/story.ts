@@ -85,16 +85,16 @@ export const chapters: Chapter[] = [
     islandSide: -1,
     islandRadius: 22,
     log: [
-      { text: 'I spent my childhood inside games.', at: [0.13, 0.18] },
-      { text: 'Then I started wondering how they were made.', at: [0.18, 0.23] },
-      { text: 'So I built my own. Click a bottle to play one.', at: [0.23, 0.3] },
+      { text: 'I spent my childhood inside games.', at: [0.13, 0.16] },
+      { text: 'Then I started wondering how they were made.', at: [0.16, 0.19] },
+      { text: 'So I built my own. Click a bottle to play one.', at: [0.19, 0.3] },
     ],
     palette: {
       skyTop: '#2f8fea', skyBottom: '#9fd3f2', sun: '#fff1d0', sunIntensity: 1.7, sunDir: [0.4, 0.85, 0.3],
       ambient: '#cfe9ff', ambientIntensity: 0.8, waterDeep: '#0b5d9a', waterShallow: '#1fb2c8', foam: '#ffffff',
       cloud: '#ffffff', stars: 0, storm: 0,
     },
-    camera: { offset: [18, 9, 30], lookAtIsland: 0.5 },
+    camera: { offset: [16, 13, 30], lookAtIsland: 0.65 },
   },
   {
     id: 'academy',
