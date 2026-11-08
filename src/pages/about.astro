@@ -20,6 +20,12 @@ const credits = [
     authorUrl: 'https://sketchfab.com/c3posw01',
   },
   {
+    work: 'Cartoony lighthouse',
+    workUrl: 'https://sketchfab.com/3d-models/cartoony-lighthouse-1e88f06c6e164f91b7d1a458bd457ad5',
+    author: 'Skodvirr',
+    authorUrl: 'https://sketchfab.com/Skodvirr',
+  },
+  {
     work: 'Date palm and vegetation',
     workUrl: 'https://sketchfab.com/3d-models/date-palm-and-vegetation-734c4537ca8547209a54df49f134824a',
     author: 'Bársh',
@@ -35,7 +41,9 @@ const extraWork = [
   <a class="about-back" href={withBase('')}>Back to the voyage</a>
   <main class="about">
     <header class="about-hero">
-      <img src={withBase('images/captain-portrait.svg')} alt="" width="240" height="200" class="about-portrait" />
+      <div class="about-portrait">
+        <img class="ink-portrait" src={withBase('images/captain-ink.png')} alt={`Inked portrait of ${captain.name}`} width="480" height="400" />
+      </div>
       <div>
         <h1>{captain.name}</h1>
         <p class="about-epithet">“{captain.epithet}”</p>

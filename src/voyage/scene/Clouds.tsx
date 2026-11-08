@@ -1,16 +1,54 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
-import { IcosahedronGeometry, InstancedMesh, Object3D, ShaderMaterial } from 'three';
+import { useMemo } from 'react';
+import { InstancedBufferAttribute, InstancedBufferGeometry, PlaneGeometry, ShaderMaterial } from 'three';
 import cloudVert from '../shaders/cloud.vert?raw';
 import cloudFrag from '../shaders/cloud.frag?raw';
 import { uniforms } from '../world/atmosphere';
 import { route } from '../world/route';
 
-const CLUSTERS = 46;
+const CLOUDS = 42;
+const HORIZON_CLOUDS = 26;
 
-/** Soft, sun-lit clouds: clusters of feathered spheres, all in one instanced draw call. */
+/**
+ * Soft, sun-lit clouds: each cloud is a cluster of camera-facing puffs whose shape comes from
+ * animated noise in the shader. All puffs share one instanced draw call.
+ */
 export function Clouds() {
-  const mesh = useRef<InstancedMesh>(null);
-  const geometry = useMemo(() => new IcosahedronGeometry(1, 3), []);
+  const geometry = useMemo(() => {
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const centers: number[] = [];
+    const sizes: number[] = [];
+    const seeds: number[] = [];
+    const shades: number[] = [];
+    for (let c = 0; c < CLOUDS + HORIZON_CLOUDS; c++) {
+      const horizon = c >= CLOUDS; // a lower, farther ring so clouds frame the horizon in every shot
+      const along = route.getPointAt(horizon ? rand() : c / CLOUDS);
+      const side = (rand() > 0.5 ? 1 : -1) * (horizon ? 260 + rand() * 220 : 70 + rand() * 220);
+      const cx = along.x + side;
+      const cy = horizon ? 30 + rand() * 30 : 60 + rand() * 55;
+      const cz = along.z - 60 + rand() * 120 - (horizon ? 150 : 0);
+      const width = (24 + rand() * 34) * (horizon ? 1.8 : 1);
+      const puffs = 16 + Math.floor(rand() * 12);
+      for (let i = 0; i < puffs; i++) {
+        // Flat-bottomed, domed shape: wider at the base, piling up in the middle.
+        const u = rand() * 2 - 1;
+        const dome = 1 - u * u;
+        const height = rand() * width * 0.35 * dome;
+        centers.push(cx + u * width, cy + height, cz + (rand() - 0.5) * width * 0.4);
+        sizes.push((13 + rand() * 12) * (0.6 + dome * 0.6) * (horizon ? 1.8 : 1));
+        seeds.push(rand());
+        shades.push(Math.min(1, height / (width * 0.35) + 0.2));
+      }
+    }
+    const g = new InstancedBufferGeometry().copy(new PlaneGeometry(1, 1) as unknown as InstancedBufferGeometry);
+    g.instanceCount = sizes.length;
+    g.setAttribute('aCenter', new InstancedBufferAttribute(new Float32Array(centers), 3));
+    g.setAttribute('aSize', new InstancedBufferAttribute(new Float32Array(sizes), 1));
+    g.setAttribute('aSeed', new InstancedBufferAttribute(new Float32Array(seeds), 1));
+    g.setAttribute('aShade', new InstancedBufferAttribute(new Float32Array(shades), 1));
+    return g;
+  }, []);
+
   const material = useMemo(
     () =>
       new ShaderMaterial({
@@ -33,38 +71,5 @@ export function Clouds() {
     [],
   );
 
-  const puffs = useMemo(() => {
-    const dummy = new Object3D();
-    const out: Object3D['matrix'][] = [];
-    let seed = 7;
-    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    for (let c = 0; c < CLUSTERS; c++) {
-      const along = route.getPointAt(c / CLUSTERS);
-      const side = (rand() > 0.5 ? 1 : -1) * (60 + rand() * 160);
-      const cx = along.x + side;
-      const cy = 55 + rand() * 50;
-      const cz = along.z - 40 + rand() * 80;
-      const size = 6 + rand() * 7;
-      const count = 7 + Math.floor(rand() * 6);
-      for (let i = 0; i < count; i++) {
-        const s = size * (0.6 + rand() * 0.6);
-        dummy.position.set(cx + (i - count / 2) * size * 0.55 + rand() * 3, cy + rand() * size * 0.45 - Math.abs(i - count / 2) * 0.6, cz + (rand() - 0.5) * size * 0.9);
-        dummy.scale.set(s, s * 0.75, s);
-        dummy.updateMatrix();
-        out.push(dummy.matrix.clone());
-      }
-    }
-    return out;
-  }, []);
-
-  useLayoutEffect(() => {
-    const m = mesh.current;
-    if (!m) return;
-    puffs.forEach((matrix, i) => m.setMatrixAt(i, matrix));
-    m.instanceMatrix.needsUpdate = true;
-    m.computeBoundingSphere();
-  }, [puffs]);
-
-
-  return <instancedMesh ref={mesh} args={[geometry, material, puffs.length]} frustumCulled={false} />;
+  return <mesh geometry={geometry} material={material} frustumCulled={false} renderOrder={1} />;
 }

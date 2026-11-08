@@ -149,7 +149,7 @@ export const chapters: Chapter[] = [
       ambient: '#7c8794', ambientIntensity: 0.9, waterDeep: '#1b2a33', waterShallow: '#3b5562', foam: '#d0dde3',
       cloud: '#4d5560', stars: 0, storm: 1,
     },
-    camera: { offset: [-8, 5, 19], lookAtIsland: 0.5 },
+    camera: { offset: [-9, 8, 22], lookAtIsland: 0.55 },
   },
   {
     id: 'horizon',

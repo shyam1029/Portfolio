@@ -23,8 +23,8 @@ vec3 gerstner(vec2 p, vec2 dir, float steep, float wavelength, inout vec3 tangen
 
 void main() {
   vec4 world = modelMatrix * vec4(position, 1.0);
-  float st = 0.55 + uStorm * 0.95;
-  float ln = 1.0 + uStorm * 0.6;
+  float st = 0.55 + uStorm * 0.6;
+  float ln = 1.0 + uStorm * 0.4;
   vec3 tangent = vec3(1.0, 0.0, 0.0);
   vec3 binormal = vec3(0.0, 0.0, 1.0);
   vec3 offset = vec3(0.0);

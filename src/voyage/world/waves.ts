@@ -11,8 +11,8 @@ export const WAVES = [
 
 export const TIME_SCALE = 0.55;
 /** Storm makes waves steeper and longer (steepness sum stays below 1 so crests never loop). */
-export const stormSteep = (storm: number) => 0.55 + storm * 0.95;
-export const stormLength = (storm: number) => 1 + storm * 0.6;
+export const stormSteep = (storm: number) => 0.55 + storm * 0.6;
+export const stormLength = (storm: number) => 1 + storm * 0.4;
 
 const G = 9.8;
 const norm = WAVES.map((w) => {

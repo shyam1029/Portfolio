@@ -1,6 +1,9 @@
 import { captain } from '../../content/story';
 import { withBase } from '../../lib/url';
 
+// Engraved portrait baked from a private photo by scripts/ink-portrait.mjs (the photo is never published).
+const PORTRAIT = withBase('images/captain-ink.png');
+
 /** Our own take on a pirate wanted poster: parchment, wood-type lettering, an XP bounty. */
 export function WantedPoster({ visible }: { visible: boolean }) {
   return (
@@ -24,7 +27,7 @@ export function WantedPoster({ visible }: { visible: boolean }) {
         </div>
         <h2 className="poster-wanted">Wanted</h2>
         <div className="poster-portrait">
-          <img src={withBase('images/captain-portrait.svg')} alt="Portrait of Captain Syam" width={240} height={200} />
+          <img className="ink-portrait" src={PORTRAIT} alt="Inked portrait of Captain Syam" width={480} height={400} />
         </div>
         <p className="poster-sought">Alive, and still learning</p>
         <p className="poster-name">{captain.name}</p>

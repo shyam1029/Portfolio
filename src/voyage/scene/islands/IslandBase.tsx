@@ -61,24 +61,25 @@ const moundHeight = (radius: number, d: number) => {
 };
 
 /** Real date palms on the mound plus bushes and grass tufts, placed with a seeded layout. */
-function Plants({ radius, seed, palms }: { radius: number; seed: number; palms: number }) {
+function Plants({ radius, seed, palms, flat }: { radius: number; seed: number; palms: number; flat: boolean }) {
   const kit = usePlantKit();
   const spots = useMemo(() => {
     const rand = seeded(seed * 7 + 1);
     const out: { plant: (typeof kit.palms)[number]; pos: [number, number, number]; rot: number; scale: number }[] = [];
     for (let i = 0; i < palms; i++) {
       const a = rand() * Math.PI * 2;
-      const d = radius * (0.25 + rand() * 0.4);
-      out.push({ plant: kit.palms[i % kit.palms.length], pos: [Math.cos(a) * d, moundHeight(radius, d) - 0.3, Math.sin(a) * d], rot: rand() * 6.28, scale: 1.5 + rand() * 0.7 });
+      // On flat islands (with a landmark in the middle) plants keep to the outer ring.
+      const d = radius * (flat ? 0.78 + rand() * 0.12 : 0.25 + rand() * 0.4);
+      out.push({ plant: kit.palms[i % kit.palms.length], pos: [Math.cos(a) * d, flat ? 0.3 : moundHeight(radius, d) - 0.3, Math.sin(a) * d], rot: rand() * 6.28, scale: 1.5 + rand() * 0.7 });
     }
     const bushCount = Math.round(radius * 0.9);
     for (let i = 0; i < bushCount; i++) {
       const a = rand() * Math.PI * 2;
-      const d = radius * (0.15 + rand() * 0.6);
-      out.push({ plant: kit.bushes[Math.floor(rand() * kit.bushes.length)], pos: [Math.cos(a) * d, moundHeight(radius, d) - 0.15, Math.sin(a) * d], rot: rand() * 6.28, scale: 1.6 + rand() * 1.4 });
+      const d = radius * (flat ? 0.72 + rand() * 0.22 : 0.15 + rand() * 0.6);
+      out.push({ plant: kit.bushes[Math.floor(rand() * kit.bushes.length)], pos: [Math.cos(a) * d, flat ? 0.45 : moundHeight(radius, d) - 0.15, Math.sin(a) * d], rot: rand() * 6.28, scale: 1.6 + rand() * 1.4 });
     }
     return out;
-  }, [kit, radius, seed, palms]);
+  }, [kit, radius, seed, palms, flat]);
 
   return (
     <>
@@ -139,7 +140,7 @@ export function IslandBase({
         </mesh>
       ))}
       {models ? (
-        <Plants radius={radius} seed={seed} palms={palms} />
+        <Plants radius={radius} seed={seed} palms={palms} flat={!grass} />
       ) : (
         palmSpots.map((p, i) => (
           <group key={i} position={p.pos} rotation-y={p.rot}>

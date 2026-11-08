@@ -4,6 +4,8 @@
 // Credits (CC-BY-4.0, shown on the About page):
 // - "Stylized Pirate Ship" by Maksim Batyrev
 //   https://sketchfab.com/3d-models/stylized-pirate-ship-1c62191534174bf7a67470fb02b97db1
+// - "Cartoony lighthouse" by Skodvirr
+//   https://sketchfab.com/3d-models/cartoony-lighthouse-1e88f06c6e164f91b7d1a458bd457ad5
 // - "Date palm and vegetation" by Bársh
 //   https://sketchfab.com/3d-models/date-palm-and-vegetation-734c4537ca8547209a54df49f134824a
 import { execFileSync } from 'node:child_process';
@@ -46,4 +48,8 @@ optimize(`${tmp}/ship.glb`, 'public/models/ship.glb');
 await strip('models-src/date_palm_and_vegetation.glb', `${tmp}/palms.glb`, { dropAttributes: ['TEXCOORD_1', 'TEXCOORD_2'] });
 optimize(`${tmp}/palms.glb`, 'public/models/palms.glb');
 
-console.log(`ship.glb ${kb('public/models/ship.glb')}, palms.glb ${kb('public/models/palms.glb')}`);
+// Keep the lighthouse, cottage, dock and rocks; drop the display water cube ("Víz") and the bonus boat ("Rákász").
+await strip('models-src/cartoony_lighthouse.glb', `${tmp}/lighthouse.glb`, { dropNodes: [/^V\S{0,4}z(_\d+)?$/, /sz_export/] });
+optimize(`${tmp}/lighthouse.glb`, 'public/models/lighthouse.glb');
+
+console.log(`lighthouse.glb ${kb('public/models/lighthouse.glb')}, ship.glb ${kb('public/models/ship.glb')}, palms.glb ${kb('public/models/palms.glb')}`);

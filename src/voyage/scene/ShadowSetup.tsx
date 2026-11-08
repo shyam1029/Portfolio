@@ -11,7 +11,7 @@ export function ShadowSetup() {
     next.current = clock.elapsedTime + 1;
     scene.traverse((o) => {
       if (o instanceof Mesh && o.material instanceof MeshStandardMaterial && !o.userData.shadowsSet) {
-        o.castShadow = !o.material.transparent;
+        o.castShadow = !o.material.transparent && !o.material.userData.noShadow;
         o.receiveShadow = true;
         o.userData.shadowsSet = true;
       }
