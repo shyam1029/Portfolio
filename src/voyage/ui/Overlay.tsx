@@ -59,6 +59,15 @@ function ScrollHint() {
   );
 }
 
+function Curtain() {
+  const ready = useVoyage((s) => s.ready);
+  return (
+    <div className={`curtain${ready ? ' is-lifted' : ''}`} aria-hidden={ready} role="status">
+      <span>Charting the course…</span>
+    </div>
+  );
+}
+
 export function Overlay() {
   const posterVisible = useVoyage((s) => s.progress >= finale.posterAt);
   return (
@@ -72,6 +81,7 @@ export function Overlay() {
       <RouteChart />
       <ScrollHint />
       <WantedPoster visible={posterVisible} />
+      <Curtain />
     </div>
   );
 }

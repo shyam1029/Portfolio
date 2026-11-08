@@ -5,6 +5,7 @@ import skyVert from '../shaders/sky.vert?raw';
 import skyFrag from '../shaders/sky.frag?raw';
 import { atmosphere, sampleAtmosphere, uniforms } from '../world/atmosphere';
 import { useVoyage } from '../world/store';
+import { shipState } from './shipState';
 
 /**
  * Sky, fog, lights and lightning. Runs first each frame (priority -1) and refreshes the shared
@@ -52,6 +53,8 @@ export function Atmosphere() {
 
     uniforms.uTime.value = t;
     uniforms.uStars.value = atmosphere.stars;
+    uniforms.uSunIntensity.value = atmosphere.sunIntensity;
+    uniforms.uAmbientIntensity.value = atmosphere.ambientIntensity + flicker * 2;
     uniforms.uStorm.value = atmosphere.storm;
     uniforms.uFlash.value = flicker;
 
@@ -63,8 +66,9 @@ export function Atmosphere() {
     if (sun.current) {
       sun.current.color.copy(atmosphere.sun);
       sun.current.intensity = atmosphere.sunIntensity;
-      sun.current.position.copy(camera.position).addScaledVector(atmosphere.sunDir, 100);
-      sun.current.target.position.copy(camera.position);
+      // Shadows are rendered in a box around the ship, so keep the light centred on it.
+      sun.current.position.copy(shipState.position).addScaledVector(atmosphere.sunDir, 150);
+      sun.current.target.position.copy(shipState.position);
       sun.current.target.updateMatrixWorld();
     }
     sky.current?.position.copy(camera.position);
@@ -74,9 +78,21 @@ export function Atmosphere() {
 
   return (
     <>
-      <fog ref={fog} attach="fog" args={['#000', 60, 420]} />
+      <fog ref={fog} attach="fog" args={['#000', 90, 420]} />
       <ambientLight ref={ambient} />
-      <directionalLight ref={sun} />
+      <directionalLight
+        ref={sun}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-55}
+        shadow-camera-right={55}
+        shadow-camera-top={55}
+        shadow-camera-bottom={-55}
+        shadow-camera-near={1}
+        shadow-camera-far={320}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.05}
+      />
       <mesh ref={sky} material={material} renderOrder={-1} frustumCulled={false}>
         <sphereGeometry args={[900, 32, 16]} />
       </mesh>

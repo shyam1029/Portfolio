@@ -1,63 +1,21 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Outlines } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import {
-  CanvasTexture, DoubleSide, ExtrudeGeometry, Group, MathUtils, Mesh, MeshToonMaterial, NearestFilter,
-  PlaneGeometry, Shape, ShapeGeometry, SRGBColorSpace, Vector3,
+  CanvasTexture, DoubleSide, Group, MathUtils, Mesh, MeshStandardMaterial, NearestFilter, PlaneGeometry, SRGBColorSpace, Vector3,
 } from 'three';
-import { INK, toon, toonGradient } from './toon';
+import { stylise } from './materials';
 import { Captain } from './Captain';
 import { shipState } from './shipState';
-import { atmosphere } from '../world/atmosphere';
+import { atmosphere, uniforms } from '../world/atmosphere';
 import { route, waveHeight } from '../world/route';
 import { useVoyage } from '../world/store';
+import { withBase } from '../../lib/url';
 
-const WOOD = '#8a5a34';
-const WOOD_DARK = '#5e3a22';
-const TRIM = '#e8402c';
-const LINEN = '#f3e6c9';
-
-/** Plan-view outline of the hull: pointed bow at +y, flat stern at -y. */
-function hullShape(scale = 1) {
-  const s = new Shape();
-  s.moveTo(-1.5 * scale, -4 * scale);
-  s.lineTo(1.5 * scale, -4 * scale);
-  s.bezierCurveTo(2.1 * scale, -1.5 * scale, 2.0 * scale, 1.8 * scale, 0, 5.2 * scale);
-  s.bezierCurveTo(-2.0 * scale, 1.8 * scale, -2.1 * scale, -1.5 * scale, -1.5 * scale, -4 * scale);
-  return s;
-}
-
-function hullGeometry() {
-  const height = 1.9;
-  const g = new ExtrudeGeometry(hullShape(), { depth: height, bevelEnabled: true, bevelSize: 0.12, bevelThickness: 0.12, bevelSegments: 2, curveSegments: 24 });
-  // Extruded along +z; stand it up so the extrusion becomes height (y), bow toward -z.
-  g.rotateX(Math.PI / 2);
-  g.rotateY(Math.PI);
-  g.translate(0, height, 0);
-  const pos = g.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const y = pos.getY(i);
-    const z = pos.getZ(i);
-    const k = MathUtils.clamp(y / height, 0, 1);
-    pos.setX(i, pos.getX(i) * MathUtils.lerp(0.35, 1, Math.sqrt(k))); // V-shaped keel
-    const bow = MathUtils.clamp(-z / 5, 0, 1);
-    pos.setY(i, y + bow * bow * 0.9 * k); // sheer: the bow rises
-  }
-  g.computeVertexNormals();
-  return g;
-}
-
-function sailGeometry(w: number, h: number) {
-  const g = new PlaneGeometry(w, h, 10, 10);
-  const pos = g.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const u = pos.getX(i) / w + 0.5;
-    const v = pos.getY(i) / h + 0.5;
-    pos.setZ(i, -Math.sin(Math.PI * u) * Math.sin(Math.PI * v) * 0.7); // billow forward
-  }
-  g.computeVertexNormals();
-  return g;
-}
+// "Stylized Pirate Ship" by Maksim Batyrev, CC-BY-4.0 (credited on the About page).
+const SHIP_URL = withBase('models/ship.glb');
+const SHIP_SCALE = 1.35;
+useGLTF.preload(SHIP_URL);
 
 /** Original emblem: an 8-bit skull over crossed bones (a nod to the games that started it all). */
 function flagTexture() {
@@ -88,27 +46,36 @@ const target = new Vector3();
 export function Ship() {
   const group = useRef<Group>(null);
   const flag = useRef<Mesh>(null);
-  const hull = useMemo(hullGeometry, []);
-  const deck = useMemo(() => {
-    const g = new ShapeGeometry(hullShape(0.9), 24);
-    g.rotateX(-Math.PI / 2); // lie flat, bow toward -z like the hull
-    return g;
+  const { scene } = useGLTF(SHIP_URL);
+
+  const model = useMemo(() => {
+    const m = scene.clone();
+    m.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      // Our own flag replaces the model's main flag.
+      if (o.name.startsWith('StylShip_MainFlag')) o.visible = false;
+      const mat = o.material as MeshStandardMaterial;
+      if (!mat.userData.stylised) {
+        stylise(mat);
+        mat.userData.stylised = true;
+      }
+      if (mat.name.includes('SailsRope')) mat.emissiveIntensity = 0.6; // glowing sail trim, softer
+    });
+    return m;
+  }, [scene]);
+
+  const flagGeo = useMemo(() => new PlaneGeometry(1.6, 1, 12, 6).translate(0.8, 0, 0), []);
+  const flagMat = useMemo(() => {
+    const m = new MeshStandardMaterial({ map: flagTexture(), roughness: 0.9, side: DoubleSide });
+    stylise(m);
+    return m;
   }, []);
-  const mainSail = useMemo(() => sailGeometry(4.6, 3.6), []);
-  const topSail = useMemo(() => sailGeometry(3.4, 2.2), []);
-  const flagGeo = useMemo(() => new PlaneGeometry(1.6, 1, 12, 6), []);
-  const flagMat = useMemo(
-    () => new MeshToonMaterial({ map: flagTexture(), gradientMap: toonGradient, side: DoubleSide }),
-    [],
-  );
-  const sailMat = useMemo(() => new MeshToonMaterial({ color: LINEN, gradientMap: toonGradient, side: DoubleSide }), []);
 
   useFrame(({ clock }, delta) => {
     const g = group.current;
     if (!g) return;
     const t = clock.elapsedTime;
-    const progress = useVoyage.getState().progress;
-    const at = MathUtils.clamp(progress, 0, 1);
+    const at = MathUtils.clamp(useVoyage.getState().progress, 0, 1);
 
     route.getPointAt(at, target);
     route.getTangentAt(at, tangent);
@@ -118,7 +85,7 @@ export function Ship() {
     const h = waveHeight(target.x, target.z, t, storm);
     const hFront = waveHeight(target.x + tangent.x * 3, target.z + tangent.z * 3, t, storm);
     const hSide = waveHeight(target.x + tangent.z * 1.5, target.z - tangent.x * 1.5, t, storm);
-    g.position.set(target.x, h * 0.85 - 0.35, target.z);
+    g.position.set(target.x, h - 0.2, target.z);
 
     const heading = Math.atan2(-tangent.x, -tangent.z);
     g.rotation.y = MathUtils.damp(g.rotation.y, heading, 4, delta);
@@ -127,74 +94,30 @@ export function Ship() {
 
     shipState.position.copy(g.position);
     shipState.forward.copy(tangent).setY(0).normalize();
+    uniforms.uShipPos.value.copy(g.position);
+    uniforms.uShipDir.value.copy(shipState.forward);
 
     // Waving flag: travelling sine along its length, pinned at the pole.
     const f = flag.current;
     if (f) {
       const pos = f.geometry.attributes.position;
       for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i) + 0.8; // 0 at the pole
+        const x = pos.getX(i); // 0 at the pole
         pos.setZ(i, Math.sin(x * 3.2 - t * (6 + storm * 6)) * 0.18 * x);
       }
       pos.needsUpdate = true;
+      f.geometry.computeVertexNormals();
     }
   });
 
   return (
     <group ref={group}>
-      <mesh geometry={hull} material={toon(WOOD)}>
-        <Outlines thickness={0.06} color={INK} />
-      </mesh>
-      {/* red trim band */}
-      <mesh geometry={hull} material={toon(TRIM)} scale={[1.02, 0.18, 1.02]} position-y={1.75} />
-      <mesh geometry={deck} material={toon('#c08a57')} position-y={1.95} />
-      {/* stern cabin */}
-      <mesh material={toon(WOOD_DARK)} position={[0, 2.6, 3.0]}>
-        <boxGeometry args={[2.4, 1.3, 1.6]} />
-        <Outlines thickness={0.05} color={INK} />
-      </mesh>
-      <mesh material={toon(TRIM)} position={[0, 3.3, 3.0]}>
-        <boxGeometry args={[2.6, 0.15, 1.8]} />
-      </mesh>
-      {/* mast, yards, crow's nest */}
-      <mesh material={toon(WOOD_DARK)} position={[0, 6.2, -0.6]}>
-        <cylinderGeometry args={[0.13, 0.18, 8.6, 10]} />
-      </mesh>
-      <mesh material={toon(WOOD_DARK)} position={[0, 7.6, -0.6]} rotation-z={Math.PI / 2}>
-        <cylinderGeometry args={[0.07, 0.07, 5, 8]} />
-      </mesh>
-      <mesh material={toon(WOOD_DARK)} position={[0, 4.0, -0.6]} rotation-z={Math.PI / 2}>
-        <cylinderGeometry args={[0.07, 0.07, 5.2, 8]} />
-      </mesh>
-      <mesh material={toon(WOOD)} position={[0, 9.4, -0.6]}>
-        <cylinderGeometry args={[0.55, 0.45, 0.5, 12, 1, true]} />
-      </mesh>
-      <mesh geometry={mainSail} material={sailMat} position={[0, 5.8, -0.75]}>
-        <Outlines thickness={0.04} color={INK} />
-      </mesh>
-      <mesh geometry={topSail} material={sailMat} position={[0, 8.6, -0.7]} scale={0.8} />
-      {/* bowsprit */}
-      <mesh material={toon(WOOD_DARK)} position={[0, 2.9, -6.1]} rotation-x={-Math.PI / 2.6}>
-        <cylinderGeometry args={[0.06, 0.1, 3.2, 8]} />
-      </mesh>
-      <mesh ref={flag} geometry={flagGeo} material={flagMat} position={[0.8, 10.5, -0.6]} />
-      {/* lantern on the stern: glows in the night chapters */}
-      <mesh position={[0, 3.6, 4.0]} material={toon('#ffd27a', '#ffb347')}>
-        <sphereGeometry args={[0.22, 12, 8]} />
-      </mesh>
-      {/* helm */}
-      <group position={[0, 2.5, 1.7]}>
-        <mesh material={toon(WOOD_DARK)}>
-          <torusGeometry args={[0.45, 0.06, 6, 16]} />
-        </mesh>
-        <mesh material={toon(WOOD_DARK)} rotation-z={Math.PI / 4}>
-          <boxGeometry args={[1.1, 0.06, 0.06]} />
-        </mesh>
-        <mesh material={toon(WOOD_DARK)} rotation-z={-Math.PI / 4}>
-          <boxGeometry args={[1.1, 0.06, 0.06]} />
-        </mesh>
-      </group>
-      <Captain position={[0, 1.95, 2.35]} />
+      {/* Model's bow points along -x; turn it to face -z (the direction of travel). */}
+      <primitive object={model} rotation-y={-Math.PI / 2} scale={SHIP_SCALE} />
+      {/* Our flag at the top of the main mast, streaming aft. */}
+      <mesh ref={flag} geometry={flagGeo} material={flagMat} position={[0, 6.0 * SHIP_SCALE, -0.83 * SHIP_SCALE]} rotation-y={-Math.PI / 2} />
+      {/* Captain at the wheel (model wheel ≈ x 1.72, deck ≈ y 1.58 before turning and scaling). */}
+      <Captain position={[0, 1.58 * SHIP_SCALE, 2.25 * SHIP_SCALE]} scale={0.75} />
     </group>
   );
 }

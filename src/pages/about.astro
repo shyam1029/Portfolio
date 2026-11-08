@@ -11,6 +11,22 @@ const story = [
   { when: 'Today', title: 'Backend developer at Novio', text: 'I work on the backend at Novio, while I keep building immersive work on the side.' },
 ];
 
+// 3D models used in the voyage (CC-BY-4.0 requires credit).
+const credits = [
+  {
+    work: 'Stylized Pirate Ship',
+    workUrl: 'https://sketchfab.com/3d-models/stylized-pirate-ship-1c62191534174bf7a67470fb02b97db1',
+    author: 'Maksim Batyrev',
+    authorUrl: 'https://sketchfab.com/c3posw01',
+  },
+  {
+    work: 'Date palm and vegetation',
+    workUrl: 'https://sketchfab.com/3d-models/date-palm-and-vegetation-734c4537ca8547209a54df49f134824a',
+    author: 'Bársh',
+    authorUrl: 'https://sketchfab.com/borsh_and',
+  },
+];
+
 const extraWork = [
   { title: 'Coral Reef Portfolio', text: 'My first portfolio: a scroll-driven underwater world, rebuilt with React Three Fiber, caustics and god rays.', url: captain.github },
 ];
@@ -68,6 +84,18 @@ const extraWork = [
         <a href={captain.github} target="_blank" rel="noreferrer">GitHub</a>
         <a href={captain.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
       </p>
+    </section>
+    <section aria-labelledby="credits">
+      <h2 id="credits">Credits</h2>
+      <ul class="about-credits">
+        {credits.map((c) => (
+          <li>
+            “<a href={c.workUrl} target="_blank" rel="noreferrer">{c.work}</a>” by{' '}
+            <a href={c.authorUrl} target="_blank" rel="noreferrer">{c.author}</a>, licensed under{' '}
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Optimised for the web.
+          </li>
+        ))}
+      </ul>
     </section>
   </main>
 </Base>

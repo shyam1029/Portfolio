@@ -22,6 +22,15 @@ export function Ocean() {
         uWaterDeep: uniforms.uWaterDeep,
         uWaterShallow: uniforms.uWaterShallow,
         uFoam: uniforms.uFoam,
+        uSkyTop: uniforms.uSkyTop,
+        uSkyBottom: uniforms.uSkyBottom,
+        uSun: uniforms.uSun,
+        uSunDir: uniforms.uSunDir,
+        uSunIntensity: uniforms.uSunIntensity,
+        uAmbient: uniforms.uAmbient,
+        uAmbientIntensity: uniforms.uAmbientIntensity,
+        uShipPos: uniforms.uShipPos,
+        uShipDir: uniforms.uShipDir,
         uIslands: { value: spots },
       },
       fog: true,
@@ -30,7 +39,7 @@ export function Ocean() {
 
   return (
     <mesh rotation-x={-Math.PI / 2} position={[0, 0, -340]} material={material}>
-      <planeGeometry args={[1400, 1400, 280, 280]} />
+      <planeGeometry args={[1400, 1400, 360, 360]} />
     </mesh>
   );
 }

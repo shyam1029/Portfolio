@@ -5,7 +5,23 @@ import { withBase } from '../../lib/url';
 export function WantedPoster({ visible }: { visible: boolean }) {
   return (
     <section className={`poster-wrap${visible ? ' is-visible' : ''}`} aria-hidden={!visible} inert={!visible}>
+      {/* SVG filters: paper fibres, and a displacement that tears and roughens the edges. */}
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true" focusable="false">
+        <filter id="poster-torn" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="7" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="poster-fibres">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9 0.05" numOctaves="2" seed="3" />
+          <feColorMatrix values="0 0 0 0 0.35  0 0 0 0 0.24  0 0 0 0 0.1  0 0 0 0.22 0" />
+        </filter>
+      </svg>
       <article className="poster" aria-label="Wanted poster">
+        <div className="poster-paper" aria-hidden="true">
+          <svg width="100%" height="100%" preserveAspectRatio="none">
+            <rect width="100%" height="100%" filter="url(#poster-fibres)" />
+          </svg>
+        </div>
         <h2 className="poster-wanted">Wanted</h2>
         <div className="poster-portrait">
           <img src={withBase('images/captain-portrait.svg')} alt="Portrait of Captain Syam" width={240} height={200} />

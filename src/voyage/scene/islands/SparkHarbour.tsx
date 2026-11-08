@@ -1,5 +1,4 @@
-import { Outlines } from '@react-three/drei';
-import { INK, toon } from '../toon';
+import { paint } from '../materials';
 import { IslandBase, defaultIslandMaterials } from './IslandBase';
 
 const mats = defaultIslandMaterials();
@@ -7,16 +6,14 @@ const mats = defaultIslandMaterials();
 function House({ position, color, roof }: { position: [number, number, number]; color: string; roof: string }) {
   return (
     <group position={position}>
-      <mesh material={toon(color)} position-y={1.4}>
+      <mesh material={paint(color)} position-y={1.4}>
         <boxGeometry args={[3, 2.8, 3]} />
-        <Outlines thickness={0.05} color={INK} />
       </mesh>
-      <mesh material={toon(roof)} position-y={3.6} rotation-y={Math.PI / 4}>
+      <mesh material={paint(roof)} position-y={3.6} rotation-y={Math.PI / 4}>
         <coneGeometry args={[2.6, 1.8, 4]} />
-        <Outlines thickness={0.05} color={INK} />
       </mesh>
       {/* lit window */}
-      <mesh material={toon('#ffd27a', '#ffb347')} position={[0, 1.5, 1.52]}>
+      <mesh material={paint('#ffd27a', '#ffb347')} position={[0, 1.5, 1.52]}>
         <planeGeometry args={[0.8, 0.8]} />
       </mesh>
     </group>
@@ -33,16 +30,16 @@ export function SparkHarbour({ radius }: { radius: number }) {
       {/* dock reaching toward the route */}
       <group position={[-radius - 3, 0.6, 0]}>
         {Array.from({ length: 8 }, (_, i) => (
-          <mesh key={i} material={toon('#8a5a34')} position={[-i * 1.2 + 4, 0, 0]}>
+          <mesh key={i} material={paint('#8a5a34')} position={[-i * 1.2 + 4, 0, 0]}>
             <boxGeometry args={[1.05, 0.25, 3]} />
           </mesh>
         ))}
         {[-3, 1, 5].map((x) => (
           <group key={x} position={[x - 1, 0, 1.6]}>
-            <mesh material={toon('#5e3a22')} position-y={1}>
+            <mesh material={paint('#5e3a22')} position-y={1}>
               <cylinderGeometry args={[0.1, 0.1, 2.4, 6]} />
             </mesh>
-            <mesh material={toon('#ffd27a', '#ffb347')} position-y={2.3}>
+            <mesh material={paint('#ffd27a', '#ffb347')} position-y={2.3}>
               <sphereGeometry args={[0.28, 10, 8]} />
             </mesh>
             <pointLight color="#ffb347" intensity={6} distance={10} position-y={2.3} />

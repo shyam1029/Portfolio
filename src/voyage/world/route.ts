@@ -41,13 +41,4 @@ export const islands: IslandSpot[] = chapters
 
 export const islandById = Object.fromEntries(islands.map((i) => [i.id, i])) as Record<ChapterId, IslandSpot | undefined>;
 
-/** Ocean surface height. Must match `waveHeight` in shaders/ocean.vert. */
-export function waveHeight(x: number, z: number, t: number, storm: number) {
-  const a = 0.35 + storm * 1.1;
-  return (
-    a *
-    (Math.sin(x * 0.08 + t * 0.9) * 0.5 +
-      Math.sin(z * 0.11 - t * 1.1) * 0.35 +
-      Math.sin((x + z) * 0.15 + t * 1.6) * 0.15)
-  );
-}
+export { waveHeight } from './waves';

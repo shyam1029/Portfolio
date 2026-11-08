@@ -1,8 +1,8 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, Outlines } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import { BoxGeometry, Color, type Group, InstancedMesh, Object3D, Vector3 } from 'three';
-import { INK, toon, toonGradient } from '../toon';
+import { paint } from '../materials';
 import { IslandBase, defaultIslandMaterials, seeded } from './IslandBase';
 import { chapters, games } from '../../../content/story';
 import { useVoyage } from '../../world/store';
@@ -10,7 +10,7 @@ import { useVoyage } from '../../world/store';
 const arcade = chapters.find((c) => c.id === 'arcade')!;
 import { atmosphere } from '../../world/atmosphere';
 import { waveHeight } from '../../world/route';
-import { MeshToonMaterial } from 'three';
+import { MeshStandardMaterial } from 'three';
 
 const mats = defaultIslandMaterials();
 const BLOCK_COLORS = ['#e8402c', '#f2b632', '#3aa0ff', '#5cbf5a', '#9b5de5', '#ff7ab6'];
@@ -31,7 +31,7 @@ function BlockTower() {
     return list;
   }, []);
   const geometry = useMemo(() => new BoxGeometry(0.96, 0.96, 0.96), []);
-  const material = useMemo(() => new MeshToonMaterial({ gradientMap: toonGradient }), []);
+  const material = useMemo(() => new MeshStandardMaterial({ roughness: 0.8 }), []);
 
   useLayoutEffect(() => {
     const m = mesh.current;
@@ -50,7 +50,6 @@ function BlockTower() {
 
   return (
     <instancedMesh ref={mesh} args={[geometry, material, blocks.length]} scale={2.2}>
-      <Outlines thickness={0.03} color={INK} />
     </instancedMesh>
   );
 }
@@ -68,9 +67,8 @@ function Coins() {
       {Array.from({ length: 6 }, (_, i) => {
         const a = (i / 6) * Math.PI * 2;
         return (
-          <mesh key={i} material={toon('#f2b632', '#6b4a00')} position={[Math.cos(a) * 7, 14, Math.sin(a) * 7]} rotation-x={Math.PI / 2}>
+          <mesh key={i} material={paint('#f2b632', '#6b4a00')} position={[Math.cos(a) * 7, 14, Math.sin(a) * 7]} rotation-x={Math.PI / 2}>
             <cylinderGeometry args={[0.9, 0.9, 0.2, 20]} />
-            <Outlines thickness={0.04} color={INK} />
           </mesh>
         );
       })}
@@ -115,17 +113,16 @@ function Bottle({ game, world, index }: { game: (typeof games)[number]; world: V
         document.body.style.cursor = '';
       }}
     >
-      <mesh material={toon('#7fe0d0')}>
+      <mesh material={paint('#7fe0d0')}>
         <capsuleGeometry args={[0.55, 1.3, 6, 12]} />
-        <Outlines thickness={0.05} color={hover ? '#f2b632' : INK} />
       </mesh>
-      <mesh material={toon('#7fe0d0')} position-y={1.25}>
+      <mesh material={paint('#7fe0d0')} position-y={1.25}>
         <cylinderGeometry args={[0.22, 0.3, 0.6, 10]} />
       </mesh>
-      <mesh material={toon('#a8754a')} position-y={1.62}>
+      <mesh material={paint('#a8754a')} position-y={1.62}>
         <cylinderGeometry args={[0.24, 0.24, 0.25, 10]} />
       </mesh>
-      <mesh material={toon('#f3e6c9')} position-y={0.05}>
+      <mesh material={paint('#f3e6c9')} position-y={0.05}>
         <cylinderGeometry args={[0.3, 0.3, 1.1, 10]} />
       </mesh>
       {/* invisible, larger hit area so the bottle is easy to click */}

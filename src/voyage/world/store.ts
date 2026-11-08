@@ -4,6 +4,9 @@ type VoyageState = {
   /** Page scroll progress, 0 at the top and 1 at the bottom. */
   progress: number;
   setProgress: (progress: number) => void;
+  /** True once the first frames have rendered (shaders compiled). */
+  ready: boolean;
+  setReady: () => void;
 };
 
 // In useFrame read `useVoyage.getState().progress` (no re-render).
@@ -11,4 +14,6 @@ type VoyageState = {
 export const useVoyage = create<VoyageState>((set) => ({
   progress: 0,
   setProgress: (progress) => set({ progress }),
+  ready: false,
+  setReady: () => set({ ready: true }),
 }));

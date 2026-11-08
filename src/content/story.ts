@@ -90,8 +90,8 @@ export const chapters: Chapter[] = [
       { text: 'So I built my own. Click a bottle to play one.', at: [0.23, 0.3] },
     ],
     palette: {
-      skyTop: '#3aa0ff', skyBottom: '#c4ecff', sun: '#fff3d6', sunIntensity: 2.4, sunDir: [0.4, 0.85, 0.3],
-      ambient: '#cfe9ff', ambientIntensity: 1.1, waterDeep: '#0d6fb0', waterShallow: '#2bc4d8', foam: '#ffffff',
+      skyTop: '#2f8fea', skyBottom: '#9fd3f2', sun: '#fff1d0', sunIntensity: 1.7, sunDir: [0.4, 0.85, 0.3],
+      ambient: '#cfe9ff', ambientIntensity: 0.8, waterDeep: '#0b5d9a', waterShallow: '#1fb2c8', foam: '#ffffff',
       cloud: '#ffffff', stars: 0, storm: 0,
     },
     camera: { offset: [18, 9, 30], lookAtIsland: 0.5 },
@@ -108,7 +108,7 @@ export const chapters: Chapter[] = [
       { text: 'Four years of fundamentals. A map I still read every day.', at: [0.38, 0.46] },
     ],
     palette: {
-      skyTop: '#3b3a8f', skyBottom: '#ff9f72', sun: '#ffb37a', sunIntensity: 1.8, sunDir: [-0.8, 0.25, -0.4],
+      skyTop: '#3b3a8f', skyBottom: '#ff9f72', sun: '#ffb37a', sunIntensity: 1.5, sunDir: [-0.8, 0.25, -0.4],
       ambient: '#d6a4c0', ambientIntensity: 0.9, waterDeep: '#2b3f7f', waterShallow: '#d67a74', foam: '#ffd9c4',
       cloud: '#ffc2a6', stars: 0.25, storm: 0,
     },
@@ -160,8 +160,8 @@ export const chapters: Chapter[] = [
     islandRadius: 0,
     log: [{ text: 'The voyage isn’t over.', at: [0.83, 0.9] }],
     palette: {
-      skyTop: '#4f7fd6', skyBottom: '#ffc98a', sun: '#ffd38a', sunIntensity: 2.4, sunDir: [0, 0.12, -1],
-      ambient: '#ffd7b0', ambientIntensity: 1.1, waterDeep: '#1f5aa8', waterShallow: '#4fb0d0', foam: '#fff4e0',
+      skyTop: '#4f7fd6', skyBottom: '#f7b77e', sun: '#ffd38a', sunIntensity: 1.8, sunDir: [0, 0.12, -1],
+      ambient: '#ffd7b0', ambientIntensity: 0.85, waterDeep: '#1f5aa8', waterShallow: '#4fb0d0', foam: '#fff4e0',
       cloud: '#ffe1c7', stars: 0, storm: 0,
     },
     camera: { offset: [6, 5, 24], lookAtIsland: 0 },
