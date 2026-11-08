@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import Voyage from '../voyage/Voyage';
+import { captain, chapters } from '../content/story';
+---
+<Base
+  page="voyage"
+  title={`The Voyage · ${captain.name}`}
+  description="An animated sea voyage through the story of Syam Satish, creative developer."
+>
+  <Voyage client:only="react" />
+  <noscript>
+    <main class="noscript">
+      <h1>The Voyage of {captain.name}</h1>
+      {chapters.map((c) => (
+        <section>
+          <h2>{c.title}</h2>
+          {c.log.map((l) => <p>{l.text}</p>)}
+        </section>
+      ))}
+      <p>{captain.dream}</p>
+    </main>
+  </noscript>
+</Base>

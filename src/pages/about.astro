@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import { captain, games } from '../content/story';
+import { withBase } from '../lib/url';
+
+// The story in plain words, in order. Edit freely.
+const story = [
+  { when: 'Childhood', title: 'Hooked by games', text: 'I grew up playing games, and kept wondering how those worlds were built.' },
+  { when: 'University', title: 'Computer science', text: 'That curiosity took me through a degree in computer science and engineering.' },
+  { when: 'Final year', title: 'Found three.js', text: 'I discovered three.js, completed an internship building with it, and finished as one of the cohort’s outstanding performers.' },
+  { when: 'Today', title: 'Backend developer at Novio', text: 'I work on the backend at Novio, while I keep building immersive work on the side.' },
+];
+
+const extraWork = [
+  { title: 'Coral Reef Portfolio', text: 'My first portfolio: a scroll-driven underwater world, rebuilt with React Three Fiber, caustics and god rays.', url: captain.github },
+];
+---
+<Base page="about" title={`About · ${captain.name}`} description={`${captain.name}, ${captain.role}. Story, work and contact.`}>
+  <a class="about-back" href={withBase('')}>Back to the voyage</a>
+  <main class="about">
+    <header class="about-hero">
+      <img src={withBase('images/captain-portrait.svg')} alt="" width="240" height="200" class="about-portrait" />
+      <div>
+        <h1>{captain.name}</h1>
+        <p class="about-epithet">“{captain.epithet}”</p>
+        <p class="about-lede">
+          A {captain.role.toLowerCase()} who got into tech through games, fell for three.js, and builds worlds in the
+          browser. {captain.dream}
+        </p>
+      </div>
+    </header>
+
+    <section aria-labelledby="story">
+      <h2 id="story">The story so far</h2>
+      <ol class="about-story">
+        {story.map((s) => (
+          <li>
+            <span class="about-when">{s.when}</span>
+            <h3>{s.title}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section aria-labelledby="work">
+      <h2 id="work">Things I’ve built</h2>
+      <ul class="about-work">
+        {games.map((g) => (
+          <li>
+            <h3><a href={g.url} target="_blank" rel="noreferrer">{g.title}</a></h3>
+            <p>{g.blurb}</p>
+          </li>
+        ))}
+        {extraWork.map((w) => (
+          <li>
+            <h3><a href={w.url} target="_blank" rel="noreferrer">{w.title}</a></h3>
+            <p>{w.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="contact">
+      <h2 id="contact">Get in touch</h2>
+      <p class="about-contact">
+        <a href={`mailto:${captain.email}`}>{captain.email}</a>
+        <a href={captain.github} target="_blank" rel="noreferrer">GitHub</a>
+        <a href={captain.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+      </p>
+    </section>
+  </main>
+</Base>
