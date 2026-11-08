@@ -134,15 +134,15 @@ export const chapters: Chapter[] = [
   },
   {
     id: 'storm',
-    title: 'The Storm',
+    title: 'The Engine Room',
     place: 'Engine Harbour',
     range: [0.64, 0.82],
     islandSide: 1,
     islandRadius: 22,
     log: [
-      { text: 'I set course to become an immersive developer. Then the weather turned.', at: [0.65, 0.71] },
-      { text: 'Today I work below deck, as a backend developer at Novio.', at: [0.71, 0.76] },
-      { text: 'A captain who knows the engine room sails further.', at: [0.76, 0.82] },
+      { text: 'Next, I steered into rougher waters on purpose: the engine room of the web.', at: [0.65, 0.71] },
+      { text: 'At Novio I build backends: the engines, pipes and servers that keep everything afloat.', at: [0.71, 0.76] },
+      { text: 'Master the engine, and you can build the whole ship, not just the sails.', at: [0.76, 0.82] },
     ],
     palette: {
       skyTop: '#23282f', skyBottom: '#5b6570', sun: '#b8c4cc', sunIntensity: 0.6, sunDir: [0.1, 0.9, 0.2],

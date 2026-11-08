@@ -1,3 +1,4 @@
+import { useProgress } from '@react-three/drei';
 import { chapters, finale } from '../../content/story';
 import { withBase } from '../../lib/url';
 import { useVoyage } from '../world/store';
@@ -62,9 +63,14 @@ function ScrollHint() {
 
 function Curtain() {
   const ready = useVoyage((s) => s.ready);
+  const { progress, active } = useProgress();
+  const loading = active || progress < 100;
   return (
     <div className={`curtain${ready ? ' is-lifted' : ''}`} aria-hidden={ready} role="status">
-      <span>Charting the course…</span>
+      <span>{loading ? `Charting the course… ${Math.round(progress)}%` : 'Raising the sails…'}</span>
+      <div className="curtain-bar" aria-hidden="true">
+        <div style={{ transform: `scaleX(${loading ? progress / 100 : 1})` }} />
+      </div>
     </div>
   );
 }

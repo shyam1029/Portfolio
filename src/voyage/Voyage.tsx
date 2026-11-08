@@ -10,6 +10,7 @@ import { CameraRig } from './scene/CameraRig';
 import { SkyLighting } from './scene/SkyLighting';
 import { ShadowSetup } from './scene/ShadowSetup';
 import { Effects } from './scene/Effects';
+import { SceneReady } from './scene/SceneReady';
 import { Overlay } from './ui/Overlay';
 import { useSmoothScroll } from './world/useSmoothScroll';
 import { route } from './world/route';
@@ -39,6 +40,7 @@ export default function Voyage() {
           <Suspense fallback={null}>
             <Ship />
             <Islands />
+            <SceneReady />
           </Suspense>
           <CameraRig />
           <SkyLighting />

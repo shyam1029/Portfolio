@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { HalfFloatType, MathUtils, Vector2, Vector3, WebGLRenderTarget } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -9,7 +9,6 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import gradeFrag from '../shaders/grade.frag?raw';
 import fullscreenVert from '../shaders/fullscreen.vert?raw';
 import { atmosphere } from '../world/atmosphere';
-import { useVoyage } from '../world/store';
 
 /**
  * Post-processing with three's own EffectComposer (the `postprocessing` library has tinted
@@ -19,7 +18,6 @@ import { useVoyage } from '../world/store';
  */
 export function Effects() {
   const { gl, scene, camera, size } = useThree();
-  const frames = useRef(0);
 
   const { composer, bloom, grade } = useMemo(() => {
     const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
@@ -50,10 +48,6 @@ export function Effects() {
   useEffect(() => () => composer.dispose(), [composer]);
 
   useFrame((_, delta) => {
-    if (!useVoyage.getState().ready && ++frames.current > 3) {
-      useVoyage.getState().setReady();
-      if (import.meta.env.DEV) console.info(`[voyage] first frames after ${Math.round(performance.now())} ms`);
-    }
     // Night and storm: moodier, less saturated, heavier vignette; lanterns bloom more at night.
     const mood = Math.max(atmosphere.stars, atmosphere.storm);
     grade.uniforms.uSaturation.value = MathUtils.lerp(1.1, 0.85, atmosphere.storm);

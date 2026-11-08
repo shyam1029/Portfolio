@@ -91,7 +91,10 @@ a { color: inherit; }
   font-family: var(--hand); font-size: 1.4rem; color: var(--parchment);
   transition: opacity 1.2s ease, visibility 0s linear 1.2s;
 }
+.curtain { gap: 14px; justify-items: center; }
 .curtain span { animation: bob 2s ease-in-out infinite; }
+.curtain-bar { width: min(240px, 60vw); height: 4px; border-radius: 2px; background: rgba(234, 217, 180, 0.2); overflow: hidden; }
+.curtain-bar div { height: 100%; background: var(--parchment); transform-origin: left; transition: transform 0.3s; }
 .curtain.is-lifted { opacity: 0; visibility: hidden; }
 
 /* ---------- Wanted poster ---------- */
